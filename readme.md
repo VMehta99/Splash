@@ -1,5 +1,6 @@
 # Slash
 ![screenshot](https://i.imgur.com/S6f5F8W.png)
+
 *Encode hidden text in images*
 
 ## How to use it:
