@@ -26,6 +26,7 @@ function decodeImage(){
          }
       }
         
+      console.log(returnString);
 
     });
 };
