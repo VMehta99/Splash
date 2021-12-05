@@ -1,4 +1,5 @@
 // Packages
+const sha256 = require('js-sha256');
 const Jimp = require('jimp');
 const fs = require('fs');
 const randomColor = require('randomcolor');
@@ -17,13 +18,47 @@ const imgSize = Math.ceil(
 
 //Secret number is the starting Y value of the encoded string in the img.
 const secretNumber = Math.floor(Math.random() * Math.ceil(Math.sqrt(str.length / 3))) + 1;
-
+// console.log(secretNumber);
 let count = endX = endY = 0;
 let color = Jimp.cssColorToHex(randomColor());
 
 
 let image = new Jimp(imgSize, imgSize, encode_image);
-let background = new Jimp(imgSize, imgSize, '#292D3E');
+let backgroundWhite = new Jimp(1750, 1750, '#FFFFFF',function(err,image){});
+
+let backgroundBlack = new Jimp(imgSize, imgSize, "#292D3E",function(err,image){
+   image.resize(1750,1750, Jimp.RESIZE_NEAREST_NEIGHBOR);
+   image.opacity(.9);
+});
+
+let cover = new Jimp(1750, 1750,function(err,img){
+   let tmp = image.clone();
+   tmp.composite(backgroundBlack,0,0,{
+      mode:Jimp.BLEND_DESTINATION_OVER,
+   })
+   tmp.color([{ apply: 'shade', params: [20] }])
+   tmp.resize(1750,1750);
+   
+   img.composite(tmp,0,0);
+   img.opacity(1/generateRandomAlpha(8,1,true));
+
+   img.pixelate(generateRandomAlpha(5,100));
+   img.blur(generateRandomAlpha(5,200));
+   img.contrast(1/generateRandomAlpha(11,1,true));
+   
+   img.contrast(1/generateRandomAlpha(10,1));
+
+   img.composite(image,335,335)
+
+   img.composite(backgroundWhite,0,0,{
+      mode:Jimp.BLEND_DESTINATION_OVER,
+   })
+   
+   
+
+   img.write('export.png');
+
+});
 
 
 function encode_image(err, image) {
@@ -32,53 +67,27 @@ function encode_image(err, image) {
    }
 
    writePixels(image); 
-  
-   image.setPixelColor(Jimp.rgbaToInt(endX, endY, secretNumber, generateRandomAlpha()), 0, 0);
 
-
-   // let bac = Jimp.intToRGBA(background.getPixelColor(0,0));
-   // console.log("Source data:");
-   // console.log(bac);
-
+   // image.setPixelColor(Jimp.rgbaToInt(endX, endY, secretNumber, imgSize), 0, 0);
    // let key = Jimp.intToRGBA(image.getPixelColor(0,0));
-   // console.log("Destination Image data:");
    // console.log(key);
 
-   // image.composite(background,0,0,{
-   //    mode:Jimp.BLEND_ADD
-   // })
-
-   // let key2 = Jimp.intToRGBA(image.getPixelColor(0,0));
-   //    console.log("Composite data:");
-   //    console.log(key2);
-
-   // image.contrast(.1);
-   // image.resize(1024,1024, Jimp.RESIZE_NEAREST_NEIGHBOR);
-
-   image.write('export.png');
-
+   image.resize(imgSize*(1080/imgSize),imgSize*(1080/imgSize), Jimp.RESIZE_NEAREST_NEIGHBOR);
+   key = Jimp.intToRGBA(image.getPixelColor(0,0));
+   
 }
 
-function dstOver(src, dst, ops = 1) {
-   src.a *= ops;
- 
-   const a = dst.a + src.a - dst.a * src.a;
-   // x + 255 - 85 * x = 1
-   const r = (dst.r * dst.a + src.r * src.a * (1 - dst.a)) / a;
-   const g = (dst.g * dst.a + src.g * src.a * (1 - dst.a)) / a;
-   const b = (dst.b * dst.a + src.b * src.a * (1 - dst.a)) / a;
- 
-   return { r, g, b, a };
- }
 
-function generateRandomAlpha(max=255,min=1) {
-   return Math.floor(min + Math.random()*(max + 1 - min))
+
+function generateRandomAlpha(max=255,min=255,floor=true) {
+   let float = Math.random() * (max - min) + min;
+   return floor?Math.floor(float):float;
 }
 
 function writePixels(image) {
    for (var x = 0; x < imgSize; x++) {
       for (var y = 0; y < imgSize; y++) {
-         //start encoding when we reach the secret number.
+         // start encoding when we reach the secret number.
          if ((count <= str.length - 1) && (count > -1) && (x >= secretNumber)) {
             let genColor = get_color(count);
             color = Jimp.rgbaToInt(genColor.r, genColor.g, genColor.b, generateRandomAlpha());
@@ -86,7 +95,7 @@ function writePixels(image) {
          }else{
             color = Jimp.cssColorToHex(randomColor({
                luminosity: 'light',
-               format: 'rgba'
+               format: 'rgb'
             }));
          }
          
@@ -103,9 +112,10 @@ function writePixels(image) {
 }
 
 function get_color(count) {
-   return {
-      "r": str.charCodeAt(count) + 110 || 0,
-      "g": str.charCodeAt(count + 1) + 110 || 0,
-      "b": str.charCodeAt(count + 2) + 110 || 0
-   }
+   let x = {
+      "r": count <= str.length - 1?str.charCodeAt(count) + 110:0,
+      "g": count+1 <= str.length - 1?str.charCodeAt(count + 1) + 110:0,
+      "b": count+2 <= str.length - 1?str.charCodeAt(count + 2) + 110:0
+   };
+   return x
 }
