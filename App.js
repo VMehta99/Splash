@@ -40,11 +40,11 @@ let cover = new Jimp(1750, 1750,function(err,img){
    tmp.resize(1750,1750);
    
    img.composite(tmp,0,0);
-   img.opacity(1/generateRandomAlpha(8,1,true));
+   img.opacity(1/generateRandomAlpha(8,1));
 
    img.pixelate(generateRandomAlpha(5,100));
    img.blur(generateRandomAlpha(5,200));
-   img.contrast(1/generateRandomAlpha(11,1,true));
+   img.contrast(generateRandomAlpha(0,1,false));
    
    img.contrast(1/generateRandomAlpha(10,1));
 
