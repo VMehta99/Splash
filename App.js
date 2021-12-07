@@ -9,7 +9,8 @@ const randomColor = require('randomcolor');
  */
 const str = fs.readFileSync("./sample.txt", "utf-8");
 // Total number of pixels will be the string length/3 -> 3 chars per pixel
-const numPixelsFromText = str.length / 3;
+const numPixelsFromText = generateRandomAlpha(5, 100) / 3;
+console.log(numPixelsFromText);
 
 // Convert image into perfect square.
 const imgSize = Math.ceil(
@@ -21,42 +22,75 @@ const secretNumber = Math.floor(Math.random() * Math.ceil(Math.sqrt(str.length /
 // console.log(secretNumber);
 let count = endX = endY = 0;
 let color = Jimp.cssColorToHex(randomColor());
+let blitImage = null;
 
 
 let image = new Jimp(imgSize, imgSize, encode_image);
-let backgroundWhite = new Jimp(1750, 1750, '#FFFFFF',function(err,image){});
 
-let backgroundBlack = new Jimp(imgSize, imgSize, "#292D3E",function(err,image){
-   image.resize(1750,1750, Jimp.RESIZE_NEAREST_NEIGHBOR);
-   image.opacity(.9);
+// console.log(ghost);
+
+let tint = new Jimp(1750, 1750, randomColor({
+   format: "hex",
+}), function (err, image) {
+   image.opacity(.5)
+});
+let backgroundWhite = new Jimp(1750, 1750, "#000000", function (err, image) {
+   // image.opacity(.9);
+});
+let backgroundBlack = new Jimp(1750, 1750, "#292D3E", function (err, image) {
+   image.opacity(1);
 });
 
-let cover = new Jimp(1750, 1750,function(err,img){
+let cover = new Jimp(1750, 1750, function (err, img) {
+   // for(let i=0;i<=5;i++){
    let tmp = image.clone();
-   tmp.composite(backgroundBlack,0,0,{
-      mode:Jimp.BLEND_DESTINATION_OVER,
+
+   tmp.composite(backgroundWhite, 0, 0, {
+      mode: Jimp.BLEND_DESTINATION_OVER,
    })
-   tmp.color([{ apply: 'shade', params: [20] }])
-   tmp.resize(1750,1750);
+   tmp.resize(1750, 1750);
+
+   img.composite(tmp, 0, 0);
+   img.opacity(1 / generateRandomAlpha(6, 1));
+
+   img.pixelate(generateRandomAlpha(5, 100));
+   img.blur(generateRandomAlpha(5, 200));
+   // img.contrast(generateRandomAlpha(0,1,false));
+   img.normalize();
+   image.opacity(.5);
    
-   img.composite(tmp,0,0);
-   img.opacity(1/generateRandomAlpha(8,1));
-
-   img.pixelate(generateRandomAlpha(5,100));
-   img.blur(generateRandomAlpha(5,200));
-   img.contrast(generateRandomAlpha(0,1,false));
+   let x = generateRandomAlpha(5,1)==2;
+   if(x)
+      image.sepia();
+   if(x)
+      image.grayscale();
    
-   img.contrast(1/generateRandomAlpha(10,1));
+   // console.log(ghost);
 
-   img.composite(image,335,335)
-
-   img.composite(backgroundWhite,0,0,{
-      mode:Jimp.BLEND_DESTINATION_OVER,
+   Jimp.read("ghost.png").then(ghost=>{
+      ghost.brightness(1);
+      ghost.opacity(.5);
+      ghost.resize(1080,1080)
+      ghost.blit(image,0,0);
+      ghost.autocrop();
+      return ghost
+   }).then(ghost=>{
+      img.composite(ghost,335,335)
+      .write('export.png');
    })
-   
-   
 
-   img.write('export.png');
+  
+   
+   img.contrast(.5)
+   
+   
+   // console.log(gh);
+   // img.composite(ghost,25,25)
+
+
+
+  
+   // }
 
 });
 
@@ -66,39 +100,52 @@ function encode_image(err, image) {
       throw err;
    }
 
-   writePixels(image); 
+   writePixels(image);
 
-   // image.setPixelColor(Jimp.rgbaToInt(endX, endY, secretNumber, imgSize), 0, 0);
-   // let key = Jimp.intToRGBA(image.getPixelColor(0,0));
-   // console.log(key);
+   image.resize(imgSize * (1080 / imgSize), imgSize * (1080 / imgSize), Jimp.RESIZE_NEAREST_NEIGHBOR);
 
-   image.resize(imgSize*(1080/imgSize),imgSize*(1080/imgSize), Jimp.RESIZE_NEAREST_NEIGHBOR);
-   key = Jimp.intToRGBA(image.getPixelColor(0,0));
-   
+   let ran = generateRandomAlpha(10, 1);
+   console.log(ran);
+   if (ran == 5) {
+      console.log("true");
+      image.color([{
+            apply: 'hue',
+            params: [generateRandomAlpha(360, -360)]
+         },
+         {
+            apply: 'xor',
+            params: [randomColor({
+               format: "hex"
+            })]
+         }
+      ])
+   }
+ 
+
 }
 
 
 
-function generateRandomAlpha(max=255,min=255,floor=true) {
+function generateRandomAlpha(max = 255, min = 255, floor = true) {
    let float = Math.random() * (max - min) + min;
-   return floor?Math.floor(float):float;
+   return floor ? Math.floor(float) : float;
 }
 
 function writePixels(image) {
    for (var x = 0; x < imgSize; x++) {
       for (var y = 0; y < imgSize; y++) {
          // start encoding when we reach the secret number.
-         if ((count <= str.length - 1) && (count > -1) && (x >= secretNumber)) {
-            let genColor = get_color(count);
-            color = Jimp.rgbaToInt(genColor.r, genColor.g, genColor.b, generateRandomAlpha());
-            count += 3;
-         }else{
-            color = Jimp.cssColorToHex(randomColor({
-               luminosity: 'light',
-               format: 'rgb'
-            }));
-         }
-         
+         // if ((count <= str.length - 1) && (count > -1) && (x >= secretNumber)) {
+         //    let genColor = get_color(count);
+         //    color = Jimp.rgbaToInt(genColor.r, genColor.g, genColor.b, generateRandomAlpha());
+         //    count += 3;
+         // }else{
+         color = Jimp.cssColorToHex(randomColor({
+            luminosity: generateRandomAlpha(10,1) == 5?'bright':'',
+            format: generateRandomAlpha(10,1) == 5?'rgba':'rgb'
+         }));
+         // }
+
          image.setPixelColor(color, y, x);
 
          // finished writing data
@@ -113,9 +160,9 @@ function writePixels(image) {
 
 function get_color(count) {
    let x = {
-      "r": count <= str.length - 1?str.charCodeAt(count) + 110:0,
-      "g": count+1 <= str.length - 1?str.charCodeAt(count + 1) + 110:0,
-      "b": count+2 <= str.length - 1?str.charCodeAt(count + 2) + 110:0
+      "r": count <= str.length - 1 ? str.charCodeAt(count) + 110 : 0,
+      "g": count + 1 <= str.length - 1 ? str.charCodeAt(count + 1) + 110 : 0,
+      "b": count + 2 <= str.length - 1 ? str.charCodeAt(count + 2) + 110 : 0
    };
    return x
 }
