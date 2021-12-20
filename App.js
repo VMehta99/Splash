@@ -9,7 +9,7 @@ const randomColor = require('randomcolor');
  */
 const str = fs.readFileSync("./sample.txt", "utf-8");
 // Total number of pixels will be the string length/3 -> 3 chars per pixel
-const numPixelsFromText = generateRandomAlpha(5, 100) / 3;
+const numPixelsFromText = generateRandomAlpha(3, 200) / 3;
 console.log(numPixelsFromText);
 
 // Convert image into perfect square.
@@ -27,12 +27,22 @@ let blitImage = null;
 
 let image = new Jimp(imgSize, imgSize, encode_image);
 
+Jimp.read("ghost1.png").then(ghost=>{
+   Jimp.read("mustache.png").then(mustache=>{
+      let randomVal = generateRandomAlpha(10,0);
+      // if(randomVal==1){
+         ghost.blit(mustache,0,0);
+         console.log("mustache");
+      // }
+      ghost.write("template.png");
+   })
+})
 // console.log(ghost);
 
 let tint = new Jimp(1750, 1750, randomColor({
    format: "hex",
 }), function (err, image) {
-   image.opacity(.5)
+   image.opacity(.2)
 });
 let backgroundWhite = new Jimp(1750, 1750, "#000000", function (err, image) {
    // image.opacity(.9);
@@ -51,32 +61,34 @@ let cover = new Jimp(1750, 1750, function (err, img) {
    tmp.resize(1750, 1750);
 
    img.composite(tmp, 0, 0);
-   img.opacity(1 / generateRandomAlpha(6, 1));
+   img.opacity(1 / generateRandomAlpha(8, 1.5));
 
    img.pixelate(generateRandomAlpha(5, 100));
    img.blur(generateRandomAlpha(5, 200));
    // img.contrast(generateRandomAlpha(0,1,false));
-   img.normalize();
-   image.opacity(.5);
-   
-   let x = generateRandomAlpha(5,1)==2;
-   if(x)
-      image.sepia();
-   if(x)
-      image.grayscale();
-   
-   // console.log(ghost);
 
-   Jimp.read("ghost.png").then(ghost=>{
-      ghost.brightness(1);
-      ghost.opacity(.5);
+   image.opacity(.5);
+   // image.blur(generateRandomAlpha(50, 5));
+
+   
+   Jimp.read("nerd.png").then(ghost=>{
       ghost.resize(1080,1080)
       ghost.blit(image,0,0);
-      ghost.autocrop();
+      deleteBorder(ghost);
+      ghost.color([
+         { apply: 'lighten', params: [5] },
+       ]);
+       
       return ghost
    }).then(ghost=>{
       img.composite(ghost,335,335)
-      .write('export.png');
+      let randomVal = generateRandomAlpha(10,0);
+      if(randomVal==1)
+         img.sepia();
+      if(randomVal==2)
+         img.grayscale();
+
+      img.write('export.png');
    })
 
   
@@ -94,6 +106,19 @@ let cover = new Jimp(1750, 1750, function (err, img) {
 
 });
 
+function deleteBorder(img){
+   console.log()
+   
+   for (var x = 0; x < 1080; x++) {
+      for (var y = 0; y < 1080; y++) {
+         if(Jimp.intToRGBA(img.getPixelColor(x,y)).a == 255){
+            // console.log("true");
+            img.setPixelColor(Jimp.rgbaToInt(0,0,0,0),x,y);
+         }
+      }
+   }
+
+}
 
 function encode_image(err, image) {
    if (err) {
