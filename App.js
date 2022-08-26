@@ -1,21 +1,24 @@
 const fs = require("fs");
+const { EncodedImage, SquareImage } = require("./modules/ImagesModule");
 
 const str = fs.readFileSync("./sample.txt", "utf-8");
-const EncodedImage = require("./EncodedImage");
-const Image = require("./Image");
-const blackBackground = new Image(1750,"#292D3E");
 
+const blackBackground = new SquareImage(1750, "#292D3E");
 
-let encodedImage = new EncodedImage(str);
+let encodedImage = new EncodedImage(str, false);
 encodedImage.resize(1080);
 
+let compositeBackground = encodedImage.clone();
+compositeBackground.compositeOver(blackBackground);
+compositeBackground.jimp.resize(1750, 1750);
 
-let background = encodedImage.clone();
-background.compositeOver(blackBackground);
-background.jimp.contrast(1)
-background.jimp.gaussian(2);
-background.jimp.resize(1750,1750);
-background.compositeUnder(encodedImage,355,355);
-background.key = encodedImage.key;
-background.setKey(355,355)
-background.writeToFile("./exports/composite.png");
+// add filters
+compositeBackground.jimp.color([{ apply: 'shade', params: [30] }])
+compositeBackground.jimp.blur(75)
+
+//combine images
+compositeBackground.compositeUnder(encodedImage, 355, 355);
+compositeBackground.key = encodedImage.key;
+compositeBackground.writeKey(355, 355)
+
+compositeBackground.writeToFile("./exports/composite.png");
