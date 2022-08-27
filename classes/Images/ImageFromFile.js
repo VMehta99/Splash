@@ -1,23 +1,27 @@
 const {readFileSync } = require('fs');
 const Jimp = require('jimp');
 const Image = require('./Image');
+const type = 'image/png'
 
-class ImageFromFile{
+class ImageFromFile extends Image{
    constructor(path) {
-      this.jimp = this.#getJimpFromFile(path);
+      let jimp = getJimpHelper(path);
+      super(jimp.bitmap.height,jimp.bitmap.width);
+      this.jimp = jimp;
+      this.path = path;
+   }  
+
+   clone(){
+      return new ImageFromFile(this.path);
    }
-
-   #getJimpFromFile(path){
-      const type = 'image/png'
-      const buffer = readFileSync(path);
-      const imageData = Jimp.decoders[type](buffer);
-      const jimp = new Jimp(imageData);
-      return jimp;
-   }
-   
-   
-
-
 }
+
+function getJimpHelper(path){
+   const buffer = readFileSync(path);
+   const imageData = Jimp.decoders[type](buffer);
+   const jimp = new Jimp(imageData);
+   return jimp;
+}
+
 
 module.exports = ImageFromFile;

@@ -14,14 +14,13 @@ Jimp.read('./exports/composite.png', (_, img) => {
    img.crop(Key_Index, Key_Index, Encoded_Image_Size, Encoded_Image_Size);
    img.resize(imageSize, imageSize, Jimp.RESIZE_NEAREST_NEIGHBOR);
 
-   let returnString = ""
-
+   let returnString = "";
    for (var y = startingY; y <= endingY; y++) {
       for (var x = 0; x <= imageSize; x++) {
          returnString +=
-            String.fromCharCode(Jimp.intToRGBA(img.getPixelColor(x, y)).r - 110) +
-            String.fromCharCode(Jimp.intToRGBA(img.getPixelColor(x, y)).g - 110) +
-            String.fromCharCode(Jimp.intToRGBA(img.getPixelColor(x, y)).b - 110)
+            String.fromCharCode(Math.max(Jimp.intToRGBA(img.getPixelColor(x, y)).r - 110, 0)) +
+            String.fromCharCode(Math.max(Jimp.intToRGBA(img.getPixelColor(x, y)).g - 110, 0)) +
+            String.fromCharCode(Math.max(Jimp.intToRGBA(img.getPixelColor(x, y)).b - 110, 0))
          if (x == endingX && y == endingY)
             break;
       }

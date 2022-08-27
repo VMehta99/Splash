@@ -1,13 +1,16 @@
 const Jimp = require('jimp');
-const randomColor = require('randomcolor');
 const SquareImage = require('./SquareImage');
 
 class EncodedImage extends SquareImage {
    #BRIGHTEN_FACTOR = 110;
 
-   constructor(encodedMessage = "", useAlpha = false) {
-      super(Math.ceil(Math.sqrt(encodedMessage.length / 3)) * 2);
-         this.useAlpha = useAlpha;
+   constructor(encodedMessage, format = 'rgb') {
+      if(!encodedMessage){
+         throw Error("encoded message must have length greater than 0");
+      }
+      let size = Math.ceil(Math.sqrt(encodedMessage.length / 3)) * 2 
+      super(size);
+         this.format = format;
          this.encodedMessage = encodedMessage;
          this.originalSize = this.size;
          this.#setStartingRow();
@@ -23,7 +26,7 @@ class EncodedImage extends SquareImage {
    }
 
    #generateImage() {
-      this.#initializeImageWithRandomColors();
+      this.initializeImageWithRandomColors(this.format);
       this.#writeEncodedMessageToPixels();
    }
 
@@ -41,14 +44,6 @@ class EncodedImage extends SquareImage {
       }
    }
 
-   #initializeImageWithRandomColors() {
-      for (var y = 0; y < this.size; y++) {
-         for (var x = 0; x < this.size; x++) {
-            this.setPixelColor(this.#getRandomColor(), x, y);
-         }
-      }
-   }
-
    #setKey(endX, endY) {
       this.key = new Key(endX, endY, this.startingEncodingRow, this.originalSize);
    }
@@ -61,13 +56,6 @@ class EncodedImage extends SquareImage {
       };
       return Jimp.rgbaToInt(color.r, color.g, color.b, this.#generateRandomNumber());
       // return Jimp.rgbaToInt(255,255,255,this.#generateRandomNumber());
-   }
-
-   #getRandomColor() {
-      return Jimp.cssColorToHex(randomColor({
-         luminosity: 'light',
-         format: this.useAlpha ? 'rgba' : 'rgb'
-      }));
    }
 
    #generateRandomNumber(max = 255, min = 255, floor = true) {

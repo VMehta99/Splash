@@ -8,8 +8,7 @@ class SquareImage extends Image {
    }
 
    resize(newSize) {
-      this.size = newSize
-      this.jimp.resize(newSize, newSize, Jimp.RESIZE_NEAREST_NEIGHBOR)
+      super.resize(newSize,newSize);
    }
 }
 

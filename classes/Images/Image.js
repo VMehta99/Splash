@@ -1,4 +1,6 @@
 const Jimp = require('jimp');
+const { replaceColorHelper, getRandomColor } = require('../../utils/ImageUtils');
+
 
 class Image {
    constructor(height, width, bgColor = "", callBack = (err, image) => { }) {
@@ -43,6 +45,26 @@ class Image {
       this.jimp.opacity(opacity);
    }
 
+   replaceColor(targetColor, replaceColor = "#00000000") {
+      replaceColorHelper(this.jimp, targetColor, replaceColor)
+   }
+
+   setJimp(jimp) {
+      this.jimp = jimp;
+   }
+
+   setBackground(color) {
+      let background = new Image(this.height, this.width, color);
+      this.compositeOver(background);
+   }
+
+   initializeImageWithRandomColors(format) {
+      for (var y = 0; y < this.width; y++) {
+         for (var x = 0; x < this.height; x++) {
+            this.setPixelColor(getRandomColor(format), x, y);
+         }
+      }
+   }
 }
 
 module.exports = Image;
