@@ -65,8 +65,7 @@ patrick.writeToFile("./exports/bluePatrick.png");
 
 **Using many classes and default JIMP features:**
 
-<img src="./exports/composite.png" width="200" height="200">
-<img src="./exports/patrick.png" width="200" height="200">
+<img src="./exports/composite.png" width="200" height="200"><img src="./exports/patrick.png" width="200" height="200">
 
 `(See examples in App.js)`
 
