@@ -7,7 +7,7 @@ function generateEncoded(){
 
    const blackBackground = new SquareImage(1750, "#292D3E");
 
-   let encodedImage = new EncodedImage(str, false);
+   let encodedImage = new EncodedImage(str, 'rgb');
    encodedImage.resize(1080);
    
    let compositeBackground = encodedImage.clone();
