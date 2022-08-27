@@ -1,53 +1,50 @@
-const Jimp = require('jimp');
-const fs = require('fs');
-var randomColor = require('randomcolor'); 
+const fs = require("fs");
+const { EncodedImage, SquareImage, ImageFromFile, Image } = require("./modules/ImagesModule");
 
 
-let color = Jimp.cssColorToHex(randomColor());
-var str = fs.readFileSync("./sample.txt", "utf-8");
-let count=0;
+function generateEncoded(){
+   const str = fs.readFileSync("./sample.txt", "utf-8");
 
-//Height/width of img is th squareRoot of the length of the string/3 (3 because each pixel can hold 3 chars) * 2 (for randomness);
-let imgSize = Math.ceil(Math.sqrt(str.length/3))*2;
+   const blackBackground = new SquareImage(1750, "#292D3E");
 
-//Secret number is the starting Y value of the encoded string in the img.
-let secretNumber = Math.floor(Math.random() * Math.ceil(Math.sqrt(str.length/3))) + 1;
+   let encodedImage = new EncodedImage(str, false);
+   encodedImage.resize(1080);
+   
+   let compositeBackground = encodedImage.clone();
+   compositeBackground.compositeOver(blackBackground);
+   compositeBackground.jimp.resize(1750, 1750);
+   
+   // add filters
+   compositeBackground.jimp.color([{ apply: 'shade', params: [30] }])
+   compositeBackground.jimp.blur(75)
+   
+   //combine images
+   compositeBackground.compositeUnder(encodedImage, 355, 355);
+   compositeBackground.key = encodedImage.key;
+   compositeBackground.writeKey(355, 355)
+   
+   compositeBackground.writeToFile("./exports/composite.png");
+}
 
-let endX = 0;
-let endY = 0;
+generateEncoded()
 
-let image = new Jimp(imgSize, imgSize, function (err, image) {
-   if (err) throw err;
-   //loop through the img
-   for (var x = 0; x < imgSize; x++) {
-      for (var y = 0; y < imgSize; y++) {
+function generatePatrick(){
+   let patrick = new ImageFromFile("./assets/patrick.png")
+   patrick.setBackground("#32CD32");
+   
+   patrick.replaceColor("#ff9176");
+   patrick.replaceColor("#f35535", "#000000")
+   patrick.jimp.autocrop();
+   patrick.resize(1080, 1080);
+   
+   let background = new SquareImage(25);
+   background.initializeImageWithRandomColors('rgb');
+   background.resize(1080);
+   
+   patrick.compositeOver(background)
+   patrick.replaceColor("#32CD32");
+   
+   patrick.writeToFile("./exports/patrick.png");
+}
 
-         //start encoding when we reach the secret number.
-         if(count<=str.length-1 && x>=secretNumber && count>-1){
-            color = Jimp.rgbaToInt(str.charCodeAt(count)+110||0,str.charCodeAt(count+1)+110 || 0,str.charCodeAt(count+2)+110||0,Math.floor(Math.random() * 255) + 1  );
-            count+=3;
-         }
-         // This randomly generate a color to fill up space.
-         else
-            color = Jimp.cssColorToHex(randomColor({luminosity: 'light',format:'rgba'}));
-         
-         //clearly messed up here: , but it works? so whatever.
-         image.setPixelColor(color, y, x);
-
-         if(count>str.length-1 && count!=-1){
-            endX = x;
-            endY = y;
-            count = -1;
-         }
-         
-
-      }
-   }
-   // index 0,0 has the info
-   image.setPixelColor(Jimp.rgbaToInt(endX,endY,secretNumber,Math.floor(Math.random() * 255) + 1 ), 0, 0);
-
-   image.write('export.png', (err) => {
-      if (err) throw err;
-   });
-});
-
+generatePatrick()

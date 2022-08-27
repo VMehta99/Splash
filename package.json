@@ -12,6 +12,8 @@
   "dependencies": {
     "fs": "0.0.1-security",
     "jimp": "^0.16.1",
-    "randomcolor": "^0.6.2"
+    "js-sha256": "^0.9.0",
+    "randomcolor": "^0.6.2",
+    "replace-color": "^2.3.0"
   }
 }
